@@ -389,33 +389,66 @@ int main() {
                 if (cin.fail()){
                     cin.clear();
                     cin.ignore(10000, '\n');
-                    cerr << "Invalid input, try again.\n";
+                    cerr << "Enter a number.\n";
                     continue;
                 }
                 if (choice == 1) {
+
+                    //They chose to add a property
                     Property p;
                     double size = getValidInputNumber<double>("Enter size (sqm): ");
+                    while(size<=0) {
+                        cout << "Size must be greater than 0.\n";
+                        size = getValidInputNumber<double>("Enter size (sqm): ");
+                    }
                     p.setSizeSqm(size);
+
                     double price = getValidInputNumber<double>("Enter price: ");
+                    while (price <= 0) {
+                        cout << "Price must be greater than 0.\n";
+                        price = getValidInputNumber<double>("Enter price: ");
+                    }
                     p.setPrice(price);
+
+                    //Did not touch it is correct. ~Jad
                     string type = getValidInputString("Enter property type ('land', 'house', or 'apartment'): ",
                                            [](const string &s){ return s=="land" || s=="house" || s=="apartment"; },
                                            "Property type must be 'land', 'house', or 'apartment'.");
                     p.setPropertyType(type);
-                    int bedrooms = getValidInputNumber<int>("Enter number of bedrooms: ");
-                    p.setBedrooms(bedrooms);
-                    int bathrooms = getValidInputNumber<int>("Enter number of bathrooms: ");
-                    p.setBathrooms(bathrooms);
+
+                    //We will not allow the user to input bedrooms and bathrooms if the property is land. ~Jad
+                    if (p.getPropertyType() != "land") {
+                        int bedrooms = getValidInputNumber<int>("Enter number of bedrooms: ");
+                        p.setBedrooms(bedrooms);
+                    }else{
+                        p.setBedrooms(0);
+                    }
+
+                    //We will not allow the user to input bedrooms and bathrooms if the property is land. ~Jad
+                    if (p.getPropertyType() != "land") {
+                        int bathrooms = getValidInputNumber<int>("Enter number of bathrooms: ");
+                        p.setBathrooms(bathrooms);
+                    }else{
+                        p.setBathrooms(0);
+                    }
+
+                    //Did not touch it is correct ~Jad
                     string place = getValidInputString("Enter place: ",
                                            [](const string &s){ return !s.empty(); },
                                            "Place cannot be empty.");
                     p.setPlace(place);
+
+                    //Did not touch it is correct ~Jad
                     int availInt = getValidInputNumber<int>("Is the property available? (1 for yes, 0 for no): ");
                     p.setAvailability(availInt != 0);
+
+                    //Did not touch it is correct ~Jad
                     string listing = getValidInputString("Enter listing type ('sale' or 'rent'): ",
                                            [](const string &s){ return s=="sale" || s=="rent"; },
                                            "Listing type must be 'sale' or 'rent'.");
+
                     p.setListingType(listing);
+                    
                     try {
                         system.addProperty(p);
                         cout << "Property added successfully.\n";

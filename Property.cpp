@@ -50,15 +50,16 @@ void Property::setListingType(const std::string &listingType) {
 bool Property::isValid() const {
     if(m_sizeSqm <= 0) return false;
     if(m_price < 0) return false;
-    if(m_propertyType != "land" && m_propertyType != "house" && m_propertyType != "apartment")
-        return false;
-    if(m_bedrooms < 0 || m_bathrooms < 0) return false;
-    if(m_listingType != "sale" && m_listingType != "rent")
-        return false;
+    if(m_propertyType != "land" && m_propertyType != "house" && m_propertyType != "apartment")return false;
+    if(m_bedrooms < 0 || m_bathrooms < 0)return false;
+    if(m_listingType != "sale" && m_listingType != "rent")return false;
+
     return true;
+        
 }
 
 std::ostream& operator<<(std::ostream &os, const Property &property) {
+    
     os << "ID: " << property.m_id
        << "\nSize: " << property.m_sizeSqm << " sqm"
        << "\nPrice: " << property.m_price
