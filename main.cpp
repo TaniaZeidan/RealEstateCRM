@@ -1,7 +1,9 @@
 #include <iostream>
 #include <string>
 #include <functional>
+#include <limits>
 #include <cctype>  // for isdigit()
+#include <sstream>
 #include "CRMSystem.h"
 #include "Agent.h"
 #include "Client.h"
@@ -235,13 +237,19 @@ string enterStartDate(){
 }
 
 string enterEndDate(){
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
     // For end date
     cout<<"Enter end date (YYYY-MM-DD) ( seperate them by spaces ): "<<endl;
+    string inputLine;
+    getline(cin, inputLine);  // Read full line including potential empty line
+
+    if (inputLine.empty()) {
+        return "";  // User skipped the date
+    }
+
     int year, month, day;
-    cin>>year;
-    cin>>month;
-    cin>>day;
-    
+    stringstream ss(inputLine);
+    ss >> year >> month >> day;
     while(!validYear(year)){
         cout<<"Please enter a year between 1980 and 2028"<<endl;
         cin>>year;
@@ -342,14 +350,14 @@ int main() {
                     string email = getValidInputString(
                         "Enter email: ",
                         validEmail,
-                        "Invalid email format, must contain '@'."
+                        "Invalid email format"
                     );
                     a.setEmail(email);
 
                     string startDate = enterStartDate();
                     string endDate = enterEndDate();
 
-                    while (!compareDates(startDate,endDate)){
+                    while (!compareDates(startDate,endDate) && endDate != ""){
                         cout<<"Please make sure that the start date is before the end date"<<endl;
                         startDate = enterStartDate();
                         endDate = enterEndDate();
@@ -407,14 +415,14 @@ int main() {
                         string email = getValidInputString(
                             "Enter email: ",
                             validEmail,
-                            "Invalid email format, must contain '@'."
+                            "Invalid email format"
                         );
                         existing.setEmail(email);
 
                         string startDate = enterStartDate();
                         string endDate = enterEndDate();
     
-                        while (!compareDates(startDate,endDate)){
+                        while (!compareDates(startDate,endDate)  && endDate != ""){
                             cout<<"Please make sure that the start date is before the end date"<<endl;
                             startDate = enterStartDate();
                             endDate = enterEndDate();
@@ -482,13 +490,18 @@ int main() {
 
                     string email = getValidInputString("Enter email: ",
                         validEmail,
-                        "Invalid email format, must contain '@'.");
+                        "Invalid email format.");
                     c.setEmail(email);
 
                     //This is different from agent
                     bool married = getValidInputBool("Is married? (1 for yes, 0 for no): ");
                     c.setIsMarried(married);
+
                     double budget = getValidInputNumber<double>("Enter budget: ");
+                    while(budget < 0){
+                        cout<<"Budget must be >0"<<endl;
+                        budget = getValidInputNumber<double>("Enter budget: ");
+                    }
                     c.setBudget(budget);
 
                     string budgetType = getValidInputString("Enter budget type ('rent' or 'buy'): ",
@@ -541,13 +554,17 @@ int main() {
 
                         string email = getValidInputString("New email: ",
                             validEmail,
-                            "Invalid email format, must contain '@'.");
+                            "Invalid email format");
                         existing.setEmail(email);
 
                         bool married = getValidInputBool("Is married? (1 for yes, 0 for no): ");
                         existing.setIsMarried(married);
 
                         double budget = getValidInputNumber<double>("New budget: ");
+                        while(budget < 0){
+                            cout<<"Budget must be >0"<<endl;
+                            budget = getValidInputNumber<double>("Enter budget: ");
+                        }
                         existing.setBudget(budget);
 
                         string budgetType = getValidInputString("New budget type ('rent' or 'buy'): ",
@@ -621,6 +638,12 @@ int main() {
                     //We will not allow the user to input bedrooms and bathrooms if the property is land. ~Jad
                     if (p.getPropertyType() != "land") {
                         int bedrooms = getValidInputNumber<int>("Enter number of bedrooms: ");
+                        while (bedrooms <0)
+                        {
+                            cout<<"Number of bedrooms should be greater than 0"<<endl;
+                            bedrooms = getValidInputNumber<int>("Enter number of bedrooms: ");
+                        }
+                        
                         p.setBedrooms(bedrooms);
                     }else{
                         p.setBedrooms(0);
@@ -629,6 +652,11 @@ int main() {
                     //We will not allow the user to input bedrooms and bathrooms if the property is land. ~Jad
                     if (p.getPropertyType() != "land") {
                         int bathrooms = getValidInputNumber<int>("Enter number of bathrooms: ");
+                        while (bathrooms <0)
+                        {
+                            cout<<"Number of bathrooms should be greater than 0"<<endl;
+                            bathrooms = getValidInputNumber<int>("Enter number of bedrooms: ");
+                        }
                         p.setBathrooms(bathrooms);
                     }else{
                         p.setBathrooms(0);
@@ -638,6 +666,13 @@ int main() {
                     string place = getValidInputString("Enter place: ",
                                            [](const string &s){ return !s.empty(); },
                                            "Place cannot be empty.");
+                    int validate = stringInput(place);
+                    while(validate != 0){
+                        place = getValidInputString("Place may not contain numbers: ",
+                            [](const string &s){ return !s.empty(); },
+                            "Place cannot be empty.");
+                        validate = stringInput(place);
+                    }
                     p.setPlace(place);
 
                     //Did not touch it is correct ~Jad
@@ -680,37 +715,84 @@ int main() {
                     int id = getValidInputNumber<int>("Enter property ID to modify: ");
                     try {
                         Property existing = system.searchPropertyById(id);
-                        cout << "Current: " << existing << "\n";
                         double size = getValidInputNumber<double>("New size (sqm): ");
+                        while(size<=0) {
+                            cout << "Size must be greater than 0.\n";
+                            size = getValidInputNumber<double>("New size (sqm): ");
+                        }
                         existing.setSizeSqm(size);
+
                         double price = getValidInputNumber<double>("New price: ");
+                        while (price <= 0) {
+                            cout << "Price must be greater than 0.\n";
+                            price = getValidInputNumber<double>("New price: ");
+                        }
                         existing.setPrice(price);
+
+                        //Did not touch it is correct. ~Jad
                         string type = getValidInputString("New property type ('land', 'house', or 'apartment'): ",
-                                           [](const string &s){ return s=="land" || s=="house" || s=="apartment"; },
-                                           "Property type must be 'land', 'house', or 'apartment'.");
+                                            [](const string &s){ return s=="land" || s=="house" || s=="apartment"; },
+                                            "Property type must be 'land', 'house', or 'apartment'.");
+                        
                         existing.setPropertyType(type);
-                        int bedrooms = getValidInputNumber<int>("New number of bedrooms: ");
-                        existing.setBedrooms(bedrooms);
-                        int bathrooms = getValidInputNumber<int>("New number of bathrooms: ");
-                        existing.setBathrooms(bathrooms);
+
+                        //We will not allow the user to input bedrooms and bathrooms if the property is land. ~Jad
+                        if (existing.getPropertyType() != "land") {
+                            int bedrooms = getValidInputNumber<int>("New number of bedrooms: ");
+                            while (bedrooms <0)
+                                {
+                                    cout<<"Number of bathrooms should be greater than 0"<<endl;
+                                    bedrooms = getValidInputNumber<int>("Enter number of bedrooms: ");
+                                }
+                            existing.setBedrooms(bedrooms);
+                        }else{
+                            existing.setBedrooms(0);
+                        }
+
+                        //We will not allow the user to input bedrooms and bathrooms if the property is land. ~Jad
+                        if (existing.getPropertyType() != "land") {
+                            int bathrooms = getValidInputNumber<int>("New number of bathrooms: ");
+                            while (bathrooms <0){
+                                cout<<"Number of bathrooms should be greater than 0"<<endl;
+                                bathrooms = getValidInputNumber<int>("Enter number of bedrooms: ");
+                            }
+                            existing.setBathrooms(bathrooms);
+                        }else{
+                            existing.setBathrooms(0);
+                        }
+
+                        //Did not touch it is correct ~Jad
                         string place = getValidInputString("New place: ",
-                                           [](const string &s){ return !s.empty(); },
-                                           "Place cannot be empty.");
+                                            [](const string &s){ return !s.empty(); },
+                                            "Place cannot be empty.");
+                        int validate = stringInput(place);
+                        while(validate != 0){
+                            place = getValidInputString("Place may not contain numbers: ",
+                                [](const string &s){ return !s.empty(); },
+                                "Place cannot be empty.");
+                            validate = stringInput(place);
+                        }
                         existing.setPlace(place);
+
+                        //Did not touch it is correct ~Jad
                         int availInt = getValidInputNumber<int>("Is the property available? (1 for yes, 0 for no): ");
                         existing.setAvailability(availInt != 0);
+
+                        //Did not touch it is correct ~Jad
                         string listing = getValidInputString("New listing type ('sale' or 'rent'): ",
-                                           [](const string &s){ return s=="sale" || s=="rent"; },
-                                           "Listing type must be 'sale' or 'rent'.");
+                                            [](const string &s){ return s=="sale" || s=="rent"; },
+                                            "Listing type must be 'sale' or 'rent'.");
+
                         existing.setListingType(listing);
-                        if (system.modifyProperty(existing))
-                            cout << "Property modified successfully.\n";
-                        else
-                            cout << "Modification failed.\n";
-                    }
-                    catch (const exception &e) {
-                        cerr << e.what() << "\n";
-                    }
+                        
+                            if (system.modifyProperty(existing))
+                                cout << "Property modified successfully.\n";
+                            else
+                                cout << "Modification failed.\n";
+                        }
+                        catch (const exception &e) {
+                            cerr << e.what() << "\n";
+                        }
                 }
                 else if (choice == 5) {
                     system.displayProperties();
@@ -757,28 +839,36 @@ int main() {
                     //Price check is working
                     double price = getValidInputNumber<double>("Enter price: ");
                     ct.setPrice(price);
-
-
-                    string sd = enterStartDate();
-                    string ed = enterEndDate();
-
-                    while (!compareDates(sd,ed)){
-                        cout<<"Please make sure that the start date is before the end date"<<endl;
-                        sd = enterStartDate();
-                        ed = enterEndDate();
-                    }
-
-                    if (ed == "empty")
-                        ed.clear();
                     
-                    ct.setStartDate(sd);
-                    ct.setEndDate(ed);
                     string cType = getValidInputString("Enter contract type ('sale' or 'rent'): ",
                                                        [](const string &s){ return s=="sale" || s=="rent"; },
                                                        "Contract type must be 'sale' or 'rent'.");
                     ct.setContractType(cType);
-                    int activeInt = getValidInputNumber<int>("Is the contract active? (1 for yes, 0 for no): ");
-                    ct.setIsActive(activeInt != 0);
+
+                    if(cType == "sale"){
+                        string sd = enterStartDate();
+                        ct.setStartDate(sd);
+
+                        string ed = "";
+                        ct.setEndDate(ed);
+                        ct.setIsActive(true);
+                    }else{
+                        string sd = enterStartDate();
+                        string ed = enterEndDate();
+
+                        while (!compareDates(sd,ed)){
+                            cout<<"Please make sure that the start date is before the end date"<<endl;
+                            sd = enterStartDate();
+                            ed = enterEndDate();
+                        }
+
+                        ct.setStartDate(sd);
+                        ct.setEndDate(ed);
+
+                        int activeInt = getValidInputNumber<int>("Is the contract active? (1 for yes, 0 for no): ");
+                        ct.setIsActive(activeInt != 0);
+                    }
+
                     try {
                         system.addContract(ct);
                         cout << "Contract added successfully.\n";
@@ -823,27 +913,36 @@ int main() {
                         double price = getValidInputNumber<double>("New price: ");
                         existing.setPrice(price);
 
-                        string sd = enterStartDate();
-                        string ed = enterEndDate();
-    
-                        while (!compareDates(sd,ed)){
-                            cout<<"Please make sure that the start date is before the end date"<<endl;
-                            sd = enterStartDate();
-                            ed = enterEndDate();
-                        }
+                        string cType = getValidInputString("Enter contract type ('sale' or 'rent'): ",
+                                                       [](const string &s){ return s=="sale" || s=="rent"; },
+                                                       "Contract type must be 'sale' or 'rent'.");
                         
-                        existing.setStartDate(sd);
-                        if (ed == "empty")
-                            ed.clear();
-                        existing.setEndDate(ed);
-
-                        string cType = getValidInputString("New contract type ('sale' or 'rent'): ",
-                                                           [](const string &s){ return s=="sale" || s=="rent"; },
-                                                           "Contract type must be 'sale' or 'rent'.");
                         existing.setContractType(cType);
 
-                        int activeInt = getValidInputNumber<int>("Is the contract active? (1 for yes, 0 for no): ");
-                        existing.setIsActive(activeInt != 0);
+                        if(cType == "sale"){
+                            string sd = enterStartDate();
+                            existing.setStartDate(sd);
+
+                            string ed = "";
+                            existing.setEndDate(ed);
+                            existing.setIsActive(true);
+                        }else{
+                            string sd = enterStartDate();
+                            string ed = enterEndDate();
+
+                            while (!compareDates(sd,ed)){
+                                cout<<"Please make sure that the start date is before the end date"<<endl;
+                                sd = enterStartDate();
+                                ed = enterEndDate();
+                            }
+
+                            existing.setStartDate(sd);
+                            existing.setEndDate(ed);
+
+                            int activeInt = getValidInputNumber<int>("Is the contract active? (1 for yes, 0 for no): ");
+                            existing.setIsActive(activeInt != 0);
+                        }
+
 
                         if (system.modifyContract(existing))
                             cout << "Contract modified successfully.\n";
