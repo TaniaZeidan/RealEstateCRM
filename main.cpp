@@ -25,7 +25,32 @@ bool validPhone8(const string &phone) {
 
 // Basic email check: must contain '@'
 bool validEmail(const string &email) {
-    return email.find('@') != string::npos;
+    //I used this counter to count characters before @
+    int counter1{0};
+    //This was used to know if there are multiple @s in the string
+    int counter2{0};
+
+    for(char c : email){
+        if(c != '@'){
+            counter1++;
+        }else{
+            if(counter1 == 0) return false;
+            counter2++;
+            counter1 = 0;
+            if (counter2 > 1)
+            {
+                return false;
+            }
+            
+        }
+        counter1++;
+        if(c == '.' && counter2 == 1){
+            //Only return true if @ exists with letters before, and after, and there is a . after it
+            return true;
+        }
+    }
+
+    return false;
 }
 
 // Basic date check: expecting exactly "YYYY-MM-DD" (10 characters, '-' at positions 4 and 7)
@@ -47,6 +72,7 @@ bool validDateOrEmptyKeyword(const string &s) {
 
 // Prompt the user and validate string input using a validator function.
 string getValidInputString(const string &prompt, function<bool(const string&)> validator, const string &errorMessage) {
+    // Validate logical functionalities here. the error is that whenever the user enters pure numbers, th String is accepted. ~Jad
     string input;
     while (true) {
         cout << prompt;
@@ -56,6 +82,22 @@ string getValidInputString(const string &prompt, function<bool(const string&)> v
         cout << errorMessage << endl;
     }
     return input;
+
+}
+
+int stringInput(string & input){
+    if (input.length() == 0)
+    {   
+        return -1; // -1 in this case will indicate empty strings (I did not use boolean since I need to check for 3 cases)
+    }
+    
+    for (char c : input){
+            if(isdigit(c)){
+                return 1; // This will indicate that the string contains digits when it shouldn't
+            }
+        }
+
+    return 0; //0 means eerything is good
 }
 
 // Template helper for numeric input.
@@ -132,21 +174,49 @@ int main() {
                     continue;
                 }
                 if (choice == 1) {
+
+                    //Validate logical functionalities here
+                    //Here I didn't change anything since the error is in the getValidInputStringMethod
                     Agent a;
-                    string firstName = getValidInputString(
-                        "Enter first name: ",
-                        [](const string &s) { return !s.empty(); },
-                        "First name cannot be empty."
-                    );
+                    string firstName;
+                    cout << "Enter agent's first name: " << endl;
+                    cin >> firstName;
+                    int validate = stringInput(firstName);
+
+                    //I will force the user to continue entering a first name intil it is valid. If you want me to change it send on whatsapp
+                    while(validate == -1){
+                        cout<<"The first name cannot be empty. Please enter the agent's first name"<<endl;
+                        cin >> firstName;
+                        validate = stringInput(firstName);
+                    }
+                    while (validate == 1)
+                    {
+                        cout<<"The first name cannot contain digits. Please enter the agent's first name"<<endl;
+                        cin >> firstName;
+                        validate = stringInput(firstName);
+                    }  
                     a.setFirstName(firstName);
 
-                    string lastName = getValidInputString(
-                        "Enter last name: ",
-                        [](const string &s) { return !s.empty(); },
-                        "Last name cannot be empty."
-                    );
+                    //Same here but for last name
+                    string lastName;
+                    cout << "Enter agent's last name: " << endl;
+                    cin >> lastName;
+                    validate = stringInput(lastName);
+
+                    while(validate == -1){
+                        cout<<"The last name cannot be empty. Please enter the agent's last name"<<endl;
+                        cin >> lastName;
+                        validate = stringInput(lastName);
+                    }
+                    while (validate == 1)
+                    {
+                        cout<<"The last name cannot contain digits. Please enter the agent's last name"<<endl;
+                        cin >> lastName;
+                        validate = stringInput(lastName);
+                    }  
                     a.setLastName(lastName);
 
+                    //This works just fine, bas do you want to override the >> operator w make it a proper format?
                     string phone = getValidInputString(
                         "Enter phone (8 digits): ",
                         validPhone8,
@@ -154,6 +224,7 @@ int main() {
                     );
                     a.setPhone(phone);
 
+                    //I will change it to validate the email
                     string email = getValidInputString(
                         "Enter email: ",
                         validEmail,
@@ -161,6 +232,7 @@ int main() {
                     );
                     a.setEmail(email);
 
+                    //ill make the start date begin from 1980 - 2028 (At max 3 year contracts)
                     string startDate = getValidInputString(
                         "Enter start date (YYYY-MM-DD): ",
                         validDate,
@@ -206,31 +278,41 @@ int main() {
                 else if (choice == 4) {
                     int id = getValidInputNumber<int>("Enter agent ID to modify: ");
                     try {
+                        //NOTE TO @TaniaZeidan: do you think rita will allow the usage of system functions? Barke she wants input streams as in reading from a file?
                         Agent existing = system.searchAgentById(id);
                         cout << "Current: " << existing << "\n";
+                        
+
+                        //For the block below, It is the same modifications as the one for the "Add Agent"
                         string firstName = getValidInputString("New first name: ",
                             [](const string &s) { return !s.empty(); },
                             "First name cannot be empty.");
                         existing.setFirstName(firstName);
+
                         string lastName = getValidInputString("New last name: ",
                             [](const string &s) { return !s.empty(); },
                             "Last name cannot be empty.");
                         existing.setLastName(lastName);
+
                         string phone = getValidInputString("New phone (8 digits): ",
                             validPhone8,
                             "Phone must be exactly 8 numeric digits.");
                         existing.setPhone(phone);
+
                         string email = getValidInputString("New email: ",
                             validEmail,
                             "Invalid email format, must contain '@'.");
                         existing.setEmail(email);
+
                         string startDate = getValidInputString("New start date (YYYY-MM-DD): ",
                             validDate,
                             "Invalid date format, should be YYYY-MM-DD.");
                         existing.setStartDate(startDate);
+
                         string endDate = getValidInputString("New end date (YYYY-MM-DD or 'empty'): ",
                             validDateOrEmptyKeyword,
                             "Invalid date format, should be YYYY-MM-DD or 'empty'.");
+
                         if (endDate == "empty")
                             endDate.clear();
                         existing.setEndDate(endDate);
@@ -254,6 +336,7 @@ int main() {
                 }
             }
         }
+
         //--------------- Manage Clients ---------------
         else if (mainChoice == 2) {
             while (true) {
@@ -274,27 +357,36 @@ int main() {
                     continue;
                 }
                 if (choice == 1) {
+
+                    //Validate logical functionalities here
                     Client c;
+
+                    //Same as the Agent
                     string firstName = getValidInputString("Enter first name: ",
                         [](const string &s){ return !s.empty(); },
                         "First name cannot be empty.");
                     c.setFirstName(firstName);
+
                     string lastName = getValidInputString("Enter last name: ",
                         [](const string &s){ return !s.empty(); },
                         "Last name cannot be empty.");
                     c.setLastName(lastName);
+
                     string phone = getValidInputString("Enter phone (8 digits): ",
                         validPhone8,
                         "Phone must be exactly 8 numeric digits.");
                     c.setPhone(phone);
+
                     string email = getValidInputString("Enter email: ",
                         validEmail,
                         "Invalid email format, must contain '@'.");
                     c.setEmail(email);
+
                     bool married = getValidInputBool("Is married? (1 for yes, 0 for no): ");
                     c.setIsMarried(married);
                     double budget = getValidInputNumber<double>("Enter budget: ");
                     c.setBudget(budget);
+
                     string budgetType = getValidInputString("Enter budget type ('rent' or 'buy'): ",
                         [](const string &s){ return s=="rent" || s=="buy"; },
                         "Budget type must be 'rent' or 'buy'.");
@@ -327,32 +419,41 @@ int main() {
                 else if (choice == 4) {
                     int id = getValidInputNumber<int>("Enter client ID to modify: ");
                     try {
+                        //Edit here as well
                         Client existing = system.searchClientById(id);
+
                         cout << "Current: " << existing << "\n";
                         string firstName = getValidInputString("New first name: ",
                             [](const string &s){ return !s.empty(); },
                             "First name cannot be empty.");
                         existing.setFirstName(firstName);
+
                         string lastName = getValidInputString("New last name: ",
                             [](const string &s){ return !s.empty(); },
                             "Last name cannot be empty.");
                         existing.setLastName(lastName);
+
                         string phone = getValidInputString("New phone (8 digits): ",
                             validPhone8,
                             "Phone must be exactly 8 numeric digits.");
                         existing.setPhone(phone);
+
                         string email = getValidInputString("New email: ",
                             validEmail,
                             "Invalid email format, must contain '@'.");
                         existing.setEmail(email);
+
                         bool married = getValidInputBool("Is married? (1 for yes, 0 for no): ");
                         existing.setIsMarried(married);
+
                         double budget = getValidInputNumber<double>("New budget: ");
                         existing.setBudget(budget);
+
                         string budgetType = getValidInputString("New budget type ('rent' or 'buy'): ",
                             [](const string &s){ return s=="rent" || s=="buy"; },
                             "Budget type must be 'rent' or 'buy'.");
                         existing.setBudgetType(budgetType);
+                        
                         if (system.modifyClient(existing))
                             cout << "Client modified successfully.\n";
                         else
@@ -541,6 +642,7 @@ int main() {
                     continue;
                 }
                 if (choice == 1) {
+                    //Validate logical functionalities here
                     Contract ct;
                     int propId = getValidInputNumber<int>("Enter property ID: ");
                     ct.setPropertyId(propId);
@@ -590,6 +692,7 @@ int main() {
                     }
                 }
                 else if (choice == 4) {
+                    //Validate logical functionalities here
                     int id = getValidInputNumber<int>("Enter contract ID to modify: ");
                     try {
                         Contract existing = system.searchContractById(id);
@@ -638,6 +741,7 @@ int main() {
         }
         //--------------- Create Contract from Existing Records ---------------
         else if (mainChoice == 5) {
+            //Validate logical functionalities here aswell
             int propId = getValidInputNumber<int>("Enter property ID: ");
             int clientId = getValidInputNumber<int>("Enter client ID: ");
             int agentId = getValidInputNumber<int>("Enter agent ID: ");
