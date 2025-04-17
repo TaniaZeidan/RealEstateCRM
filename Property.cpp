@@ -1,4 +1,5 @@
 #include "Property.h"
+#include "Exceptions.h"
 #include <stdexcept>
 #include <algorithm>
 
@@ -33,7 +34,7 @@ void Property::setPropertyType(const std::string &propertyTypeInput) {
 
     // Optionally trim leading/trailing spaces, then check
     if (propertyType != "land" && propertyType != "house" && propertyType != "apartment")
-        throw std::invalid_argument("Property type must be 'land', 'house', or 'apartment'.");
+        throw ValidationException("Property type must be 'land', 'house', or 'apartment'.");
     
     m_propertyType = propertyTypeInput;
 }
@@ -43,7 +44,7 @@ void Property::setPlace(const std::string &place) { m_place = place; }
 void Property::setAvailability(bool available) { m_available = available; }
 void Property::setListingType(const std::string &listingType) {
     if (listingType != "sale" && listingType != "rent")
-        throw std::invalid_argument("Listing type must be 'sale' or 'rent'.");
+        throw ValidationException("Listing type must be 'sale' or 'rent'.");
     m_listingType = listingType;
 }
 

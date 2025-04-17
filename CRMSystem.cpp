@@ -33,7 +33,7 @@ void CRMSystem::addAgent(const Agent &agent) {
         a.setId(nextAgentId++);
     }
     if (!a.isValid())
-        throw std::invalid_argument("Invalid agent data.");
+        throw ValidationException("Invalid agent data.");
     agents.push_back(a);
 }
 
@@ -52,7 +52,7 @@ Agent CRMSystem::searchAgentById(int agentId) const {
         if(a.getId() == agentId)
             return a;
     }
-    throw std::runtime_error("Agent not found.");
+    throw AgentNotFoundException(agentId);
 }
 
 bool CRMSystem::modifyAgent(const Agent &modifiedAgent) {
@@ -84,7 +84,7 @@ void CRMSystem::addClient(const Client &client) {
         c.setId(nextClientId++);
     }
     if(!c.isValid())
-        throw std::invalid_argument("Invalid client data.");
+        throw ValidationException("Invalid client data.");
     clients.push_back(c);
 }
 
@@ -103,7 +103,7 @@ Client CRMSystem::searchClientById(int clientId) const {
         if(c.getId() == clientId)
             return c;
     }
-    throw std::runtime_error("Client not found.");
+    throw ClientNotFoundException(clientId);
 }
 
 bool CRMSystem::modifyClient(const Client &modifiedClient) {
@@ -135,7 +135,7 @@ void CRMSystem::addProperty(const Property &property) {
         p.setId(nextPropertyId++);
     }
     if(!p.isValid())
-        throw std::invalid_argument("Invalid property data.");
+        throw ValidationException("Invalid property data.");
     properties.push_back(p);
 }
 
@@ -154,7 +154,7 @@ Property CRMSystem::searchPropertyById(int propertyId) const {
         if(p.getId() == propertyId)
             return p;
     }
-    throw std::runtime_error("Property not found.");
+    throw PropertyNotFoundException(propertyId);
 }
 
 bool CRMSystem::modifyProperty(const Property &modifiedProperty) {
@@ -186,7 +186,7 @@ void CRMSystem::addContract(const Contract &contract) {
         ct.setId(nextContractId++);
     }
     if(!ct.isValid())
-        throw std::invalid_argument("Invalid contract data.");
+        throw ValidationException("Invalid contract data.");
     contracts.push_back(ct);
 }
 
@@ -205,7 +205,7 @@ Contract CRMSystem::searchContractById(int contractId) const {
         if(c.getId() == contractId)
             return c;
     }
-    throw std::runtime_error("Contract not found.");
+    throw ContractNotFoundException(contractId);
 }
 
 bool CRMSystem::modifyContract(const Contract &modifiedContract) {
@@ -233,12 +233,29 @@ void CRMSystem::createContract(int /*ignored*/, int propertyId, int clientId, in
                                double price, const std::string &startDate,
                                const std::string &endDate, const std::string &contractType, bool isActive)
 {
-    // Validate references first (will throw if not found)
-    searchAgentById(agentId);
-    searchClientById(clientId);
-    searchPropertyById(propertyId);
+    // Validate references first
+    try {
+        searchAgentById(agentId);
+    } catch (const AgentNotFoundException& e) {
+        throw ValidationException("Agent not found: " + std::to_string(agentId));
+    }
+    
+    try {
+        searchClientById(clientId);
+    } catch (const ClientNotFoundException& e) {
+        throw ValidationException("Client not found: " + std::to_string(clientId));
+    }
+    
+    try {
+        searchPropertyById(propertyId);
+    } catch (const PropertyNotFoundException& e) {
+        throw ValidationException("Property not found: " + std::to_string(propertyId));
+    }
 
     Contract contract(-1, propertyId, clientId, agentId, price, startDate, endDate, contractType, isActive);
+    if (!contract.isValid()) {
+        throw ValidationException("Invalid contract data");
+    }
     addContract(contract);
 }
 
@@ -270,15 +287,20 @@ void CRMSystem::loadAgents() {
         // Expected 7 tokens: id,firstName,lastName,phone,email,startDate,endDate
         if(tokens.size() < 7) continue;
         Agent a;
-        a.setId(std::stoi(tokens[0]));
-        if(a.getId() > maxId) maxId = a.getId();
-        a.setFirstName(tokens[1]);
-        a.setLastName(tokens[2]);
-        a.setPhone(tokens[3]);
-        a.setEmail(tokens[4]);
-        a.setStartDate(tokens[5]);
-        a.setEndDate(tokens[6]);
-        agents.push_back(a);
+        try {
+            a.setId(std::stoi(tokens[0]));
+            if(a.getId() > maxId) maxId = a.getId();
+            a.setFirstName(tokens[1]);
+            a.setLastName(tokens[2]);
+            a.setPhone(tokens[3]);
+            a.setEmail(tokens[4]);
+            a.setStartDate(tokens[5]);
+            a.setEndDate(tokens[6]);
+            agents.push_back(a);
+        } catch (const std::exception& e) {
+            // Log or handle parsing errors
+            std::cerr << "Error parsing agent: " << e.what() << std::endl;
+        }
     }
     in.close();
     nextAgentId = maxId + 1;
@@ -286,6 +308,9 @@ void CRMSystem::loadAgents() {
 
 void CRMSystem::saveAgents() {
     std::ofstream out("agents_data.csv");
+    if(!out) {
+        throw FileOperationException("agents_data.csv", "write");
+    }
     for(const auto &a : agents) {
         out << a.getId() << ","
             << a.getFirstName() << ","

@@ -1,4 +1,5 @@
 #include "Contract.h"
+#include "Exceptions.h"
 #include <stdexcept>
 
 Contract::Contract() 
@@ -33,17 +34,22 @@ void Contract::setStartDate(const std::string &startDate) { m_startDate = startD
 void Contract::setEndDate(const std::string &endDate) { m_endDate = endDate; }
 void Contract::setContractType(const std::string &contractType) {
     if(contractType != "sale" && contractType != "rent")
-        throw std::invalid_argument("Contract type must be 'sale' or 'rent'.");
+        throw ValidationException("Contract type must be 'sale' or 'rent'.");
     m_contractType = contractType;
 }
 void Contract::setIsActive(bool isActive) { m_isActive = isActive; }
 
 bool Contract::isValid() const {
-    if(m_propertyId < 0 || m_clientId < 0 || m_agentId < 0) return false;
-    if(m_price < 0) return false;
-    if(m_startDate.empty()) return false;
-    if(!m_endDate.empty() && m_startDate > m_endDate) return false;
-    if(m_contractType != "sale" && m_contractType != "rent") return false;
+    if(m_propertyId < 0 || m_clientId < 0 || m_agentId < 0) 
+        return false;
+    if(m_price < 0) 
+        return false;
+    if(m_startDate.empty()) 
+        return false;
+    if(!m_endDate.empty() && m_startDate > m_endDate) 
+        return false;
+    if(m_contractType != "sale" && m_contractType != "rent") 
+        return false;
     return true;
 }
 

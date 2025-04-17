@@ -1,4 +1,5 @@
 #include "Client.h"
+#include "Exceptions.h"
 #include <stdexcept>
 
 Client::Client() : m_id(-1), m_isMarried(false), m_budget(0.0), m_budgetType("buy") {}
@@ -28,16 +29,20 @@ void Client::setIsMarried(bool isMarried) { m_isMarried = isMarried; }
 void Client::setBudget(double budget) { m_budget = budget; }
 void Client::setBudgetType(const std::string &budgetType) {
     if(budgetType != "rent" && budgetType != "buy") {
-        throw std::invalid_argument("Budget type must be 'rent' or 'buy'.");
+        throw ValidationException("Budget type must be 'rent' or 'buy'.");
     }
     m_budgetType = budgetType;
 }
 
 bool Client::isValid() const {
-    if(m_firstName.empty() || m_lastName.empty()) return false;
-    if(m_budget < 0) return false;
-    if(!m_email.empty() && m_email.find('@') == std::string::npos) return false;
-    if(m_budgetType != "rent" && m_budgetType != "buy") return false;
+    if(m_firstName.empty() || m_lastName.empty()) 
+        return false;
+    if(m_budget < 0) 
+        return false;
+    if(!m_email.empty() && m_email.find('@') == std::string::npos) 
+        return false;
+    if(m_budgetType != "rent" && m_budgetType != "buy") 
+        return false;
     return true;
 }
 

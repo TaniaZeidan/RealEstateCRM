@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <string>
+#include "Exceptions.h"
 
 class Agent {
 public:

@@ -27,8 +27,10 @@ void Agent::setStartDate(const std::string &startDate) { m_startDate = startDate
 void Agent::setEndDate(const std::string &endDate) { m_endDate = endDate; }
 
 bool Agent::isValid() const {
-    if(m_firstName.empty() || m_lastName.empty()) return false;
-    if(m_email.find('@') == std::string::npos) return false;
+    if(m_firstName.empty() || m_lastName.empty()) 
+        return false;
+    if(m_email.find('@') == std::string::npos) 
+        return false;
     return true;
 }
 

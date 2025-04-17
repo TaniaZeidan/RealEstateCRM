@@ -9,6 +9,7 @@
 #include "Client.h"
 #include "Property.h"
 #include "Contract.h"
+#include "Exceptions.h"
 
 using namespace std;
 
@@ -370,8 +371,14 @@ int main() {
                         system.addAgent(a);
                         cout << "Agent added successfully.\n";
                     }
-                    catch (const exception &e) {
-                        cerr << "Error: " << e.what() << "\n";
+                      catch (const ValidationException& e) {
+                        cerr << "Validation Error: " << e.what() << "\n";
+                    }
+                    catch (const CRMException& e) {
+                        cerr << "CRM Error: " << e.what() << "\n";
+                    }
+                    catch (const std::exception& e) {
+                        cerr << "Unexpected error: " << e.what() << "\n";
                     }
                 }
                 else if (choice == 2) {
@@ -387,8 +394,14 @@ int main() {
                         Agent a = system.searchAgentById(id);
                         cout << "Found: " << a << "\n";
                     }
-                    catch (const exception &e) {
-                        cerr << e.what() << "\n";
+                    catch (const AgentNotFoundException& e) {
+                        cerr << "Error: " << e.what() << "\n";
+                    }
+                    catch (const CRMException& e) {
+                        cerr << "CRM Error: " << e.what() << "\n";
+                    }
+                    catch (const std::exception& e) {
+                        cerr << "Unexpected error: " << e.what() << "\n";
                     }
                 }
                 else if (choice == 4) {
@@ -436,8 +449,14 @@ int main() {
                     else
                         cout << "Modification failed.\n";
                     }
-                    catch (const exception &e) {
-                        cerr << e.what() << "\n";
+                    catch (const AgentNotFoundException& e) {
+                        cerr << "Error: " << e.what() << "\n";
+                    }
+                    catch (const CRMException& e) {
+                        cerr << "CRM Error: " << e.what() << "\n";
+                    }
+                    catch (const std::exception& e) {
+                        cerr << "Unexpected error: " << e.what() << "\n";
                     }
                 }
                 else if (choice == 5) {
@@ -512,8 +531,14 @@ int main() {
                         system.addClient(c);
                         cout << "Client added successfully.\n";
                     }
-                    catch (const exception &e) {
-                        cerr << "Error: " << e.what() << "\n";
+                    catch (const ValidationException& e) {
+                        cerr << "Validation Error: " << e.what() << "\n";
+                    }
+                    catch (const CRMException& e) {
+                        cerr << "CRM Error: " << e.what() << "\n";
+                    }
+                    catch (const std::exception& e) {
+                        cerr << "Unexpected error: " << e.what() << "\n";
                     }
                 }
                 else if (choice == 2) {
@@ -529,8 +554,14 @@ int main() {
                         Client c = system.searchClientById(id);
                         cout << "Found: " << c << "\n";
                     }
-                    catch (const exception &e) {
-                        cerr << e.what() << "\n";
+                    catch (const ClientNotFoundException& e) {
+                        cerr << "Error: " << e.what() << "\n";
+                    }
+                    catch (const CRMException& e) {
+                        cerr << "CRM Error: " << e.what() << "\n";
+                    }
+                    catch (const std::exception& e) {
+                        cerr << "Unexpected error: " << e.what() << "\n";
                     }
                 }
                 else if (choice == 4) {
@@ -577,8 +608,14 @@ int main() {
                         else
                             cout << "Modification failed.\n";
                     }
-                    catch (const exception &e) {
-                        cerr << e.what() << "\n";
+                    catch (const ClientNotFoundException& e) {
+                        cerr << "Error: " << e.what() << "\n";
+                    }
+                    catch (const CRMException& e) {
+                        cerr << "CRM Error: " << e.what() << "\n";
+                    }
+                    catch (const std::exception& e) {
+                        cerr << "Unexpected error: " << e.what() << "\n";
                     }
                 }
                 else if (choice == 5) {
@@ -690,8 +727,14 @@ int main() {
                         system.addProperty(p);
                         cout << "Property added successfully.\n";
                     }
-                    catch (const exception &e) {
-                        cerr << "Error: " << e.what() << "\n";
+                    catch (const ValidationException& e) {
+                        cerr << "Validation Error: " << e.what() << "\n";
+                    }
+                    catch (const CRMException& e) {
+                        cerr << "CRM Error: " << e.what() << "\n";
+                    }
+                    catch (const std::exception& e) {
+                        cerr << "Unexpected error: " << e.what() << "\n";
                     }
                 }
                 else if (choice == 2) {
@@ -707,8 +750,14 @@ int main() {
                         Property p = system.searchPropertyById(id);
                         cout << "Found: " << p << "\n";
                     }
-                    catch (const exception &e) {
-                        cerr << e.what() << "\n";
+                    catch (const PropertyNotFoundException& e) {
+                        cerr << "Error: " << e.what() << "\n";
+                    }
+                    catch (const CRMException& e) {
+                        cerr << "CRM Error: " << e.what() << "\n";
+                    }
+                    catch (const std::exception& e) {
+                        cerr << "Unexpected error: " << e.what() << "\n";
                     }
                 }
                 else if (choice == 4) {
@@ -790,9 +839,15 @@ int main() {
                             else
                                 cout << "Modification failed.\n";
                         }
-                        catch (const exception &e) {
-                            cerr << e.what() << "\n";
-                        }
+                    catch (const PropertyNotFoundException& e) {
+                        cerr << "Error: " << e.what() << "\n";
+                    }
+                    catch (const CRMException& e) {
+                        cerr << "CRM Error: " << e.what() << "\n";
+                    }
+                    catch (const std::exception& e) {
+                        cerr << "Unexpected error: " << e.what() << "\n";
+                    }
                 }
                 else if (choice == 5) {
                     system.displayProperties();
@@ -873,8 +928,14 @@ int main() {
                         system.addContract(ct);
                         cout << "Contract added successfully.\n";
                     }
-                    catch (const exception &e) {
-                        cerr << e.what() << "\n";
+                    catch (const ValidationException& e) {
+                        cerr << "Validation Error: " << e.what() << "\n";
+                    }
+                    catch (const CRMException& e) {
+                        cerr << "CRM Error: " << e.what() << "\n";
+                    }
+                    catch (const std::exception& e) {
+                        cerr << "Unexpected error: " << e.what() << "\n";
                     }
                 }
                 else if (choice == 2) {
@@ -890,8 +951,14 @@ int main() {
                         Contract c = system.searchContractById(id);
                         cout << "Found: " << c << "\n";
                     }
-                    catch (const exception &e) {
-                        cerr << e.what() << "\n";
+                    catch (const ContractNotFoundException& e) {
+                        cerr << "Error: " << e.what() << "\n";
+                    }
+                    catch (const CRMException& e) {
+                        cerr << "CRM Error: " << e.what() << "\n";
+                    }
+                    catch (const std::exception& e) {
+                        cerr << "Unexpected error: " << e.what() << "\n";
                     }
                 }
                 else if (choice == 4) {
@@ -949,8 +1016,14 @@ int main() {
                         else
                             cout << "Modification failed.\n";
                     }
-                    catch (const exception &e) {
-                        cerr << e.what() << "\n";
+                    catch (const ContractNotFoundException& e) {
+                        cerr << "Error: " << e.what() << "\n";
+                    }
+                    catch (const CRMException& e) {
+                        cerr << "CRM Error: " << e.what() << "\n";
+                    }
+                    catch (const std::exception& e) {
+                        cerr << "Unexpected error: " << e.what() << "\n";
                     }
                 }
                 else if (choice == 5) {
@@ -983,8 +1056,17 @@ int main() {
                 system.createContract(-1, propId, clientId, agentId, price, sd, ed, cType, activeInt != 0);
                 cout << "Contract created successfully.\n";
             }
-            catch (const exception &e) {
-                cerr << "Error: " << e.what() << "\n";
+            catch (const ValidationException& e) {
+                cerr << "Validation Error: " << e.what() << "\n";
+            }
+            catch (const EntityNotFoundException& e) {
+                cerr << "Entity Not Found: " << e.what() << "\n";
+            }
+            catch (const CRMException& e) {
+                cerr << "CRM Error: " << e.what() << "\n";
+            }
+            catch (const std::exception& e) {
+                cerr << "Unexpected error: " << e.what() << "\n";
             }
         }
         else if (mainChoice == 6) {

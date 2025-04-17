@@ -8,6 +8,7 @@
 #include "Property.h"
 #include "Contract.h"
 #include "Inspection.h"
+#include "Exceptions.h"
 
 class CRMSystem {
 public:
