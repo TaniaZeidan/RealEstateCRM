@@ -54,17 +54,42 @@ bool validEmail(const string &email) {
 }
 
 // Basic date check: expecting exactly "YYYY-MM-DD" (10 characters, '-' at positions 4 and 7)
-bool validDate(const string &date) {
-    if (date.size() != 10) return false;
-    return (date[4] == '-' && date[7] == '-');
+bool validYear(const int &year) {
+    if(!(year >=1980 && year <= 2028)){
+        return false;
+    }
+
+    return true;
+}
+bool validMonth(const int &month) {
+    if(!(month <= 12 && month > 0)){
+        return false;
+    }
+    return true;
+}
+bool validDay(const int &day, const int &month, const int &year) {
+    if(month == 2 && (year%4 == 0)){
+        if(!(day > 0 && day <=29))return false;
+    
+    }else if(month == 2 && (year%4 != 0)){
+        if(!(day > 0 && day <=28))return false;
+    }
+
+    if(month == 1 || month == 3 || month == 5 || month == 7 || month == 8 || month == 10 || month == 12){
+        if(!(day > 0 && day <=31)) return false;
+    }
+
+    if(!(day > 0 && day <=30)) return false;
+
+    return true;
 }
 
 // Validates a date or the special keyword "empty"
 // If "empty" is entered, it will later be converted to an empty string.
-bool validDateOrEmptyKeyword(const string &s) {
-    if (s == "empty") return true;
-    return validDate(s);
-}
+// bool validDateOrEmptyKeyword(const string &s) {
+//     if (s == "empty") return true;
+//     return validDate(s);
+// }
 
 //------------------------------
 // Interactive Input Helpers
@@ -130,6 +155,130 @@ bool getValidInputBool(const string &prompt) {
     }
 }
 
+//I have put the input functions here. It is better since it will reduce redundancy
+
+string enterFirstName(){
+    string firstName;
+    cout << "Enter first name: " << endl;
+    cin >> firstName;
+    int validate = stringInput(firstName);
+
+    //I will force the user to continue entering a first name intil it is valid. If you want me to change it send on whatsapp
+    while(validate == -1){
+        cout<<"The first name cannot be empty. Please enter the first name"<<endl;
+        cin >> firstName;
+        validate = stringInput(firstName);
+    }
+    while (validate == 1){
+        cout<<"The first name cannot contain digits. Please enter the first name"<<endl;
+        cin >> firstName;
+        validate = stringInput(firstName);
+    }  
+
+    return firstName;
+}
+
+string enterLastName(){
+    string lastName;
+    int validate;
+    cout << "Enter last name: " << endl;
+    cin >> lastName;
+    validate = stringInput(lastName);
+
+    while(validate == -1){
+        cout<<"The last name cannot be empty. Please enter the last name"<<endl;
+        cin >> lastName;
+        validate = stringInput(lastName);
+    }
+    while (validate == 1)
+    {
+        cout<<"The last name cannot contain digits. Please enter the last name"<<endl;
+        cin >> lastName;
+        validate = stringInput(lastName);
+    }  
+
+    return lastName;
+}
+
+string enterStartDate(){
+    //Get the starting date from the user
+    cout<<"Enter start date (YYYY-MM-DD) ( seperate them by spaces ): "<<endl;
+    int year, month, day;
+    cin>>year;
+    cin>>month;
+    cin>>day;
+    
+    while(!validYear(year)){
+        cout<<"Please enter a year between 1980 and 2028"<<endl;
+        cin>>year;
+    }
+
+    while(!validMonth(month)){
+        cout<<"Please enter a month between 1 and 12"<<endl;
+        cin>>month;
+    }
+
+    while(!validDay(day, month, year)){
+        cout<<"Please enter a valid day"<<endl;
+        cin>>day;
+    }
+
+    string yearAsString = to_string(year);
+    string monthAsString = (month < 10 ? "0" : "") + to_string(month);
+    string dayAsString = (day < 10 ? "0" : "") + to_string(day);
+    
+    string startDate = yearAsString + "-" + monthAsString + "-" + dayAsString;
+    
+    // cout << "For testing a proper date format, startDate: " << startDate << endl;
+
+    return startDate;
+}
+
+string enterEndDate(){
+    // For end date
+    cout<<"Enter end date (YYYY-MM-DD) ( seperate them by spaces ): "<<endl;
+    int year, month, day;
+    cin>>year;
+    cin>>month;
+    cin>>day;
+    
+    while(!validYear(year)){
+        cout<<"Please enter a year between 1980 and 2028"<<endl;
+        cin>>year;
+    }
+
+    while(!validMonth(month)){
+        cout<<"Please enter a month between 1 and 12"<<endl;
+        cin>>month;
+    }
+
+    while(!validDay(day, month, year)){
+        cout<<"Please enter a valid day"<<endl;
+        cin>>day;
+    }
+
+    string yearAsString = to_string(year);
+    string monthAsString = (month < 10 ? "0" : "") + to_string(month);
+    string dayAsString = (day < 10 ? "0" : "") + to_string(day);
+    
+    string endDate = yearAsString + "-" + monthAsString + "-" + dayAsString;
+    
+    // cout << "For testing a proper date format, endDate: " << endDate << endl;
+    
+
+    return endDate;
+}
+
+bool compareDates(const string& startDate, const string& endDate){
+
+    //They can be directly compared since they have the same format YYYY-MM-DD
+    if (startDate <= endDate){
+        return true;
+    } else {
+        return false;
+    }
+}
+
 //------------------------------
 // Main Application
 //------------------------------
@@ -175,48 +324,14 @@ int main() {
                 }
                 if (choice == 1) {
 
-                    //Validate logical functionalities here
-                    //Here I didn't change anything since the error is in the getValidInputStringMethod
                     Agent a;
-                    string firstName;
-                    cout << "Enter agent's first name: " << endl;
-                    cin >> firstName;
-                    int validate = stringInput(firstName);
-
-                    //I will force the user to continue entering a first name intil it is valid. If you want me to change it send on whatsapp
-                    while(validate == -1){
-                        cout<<"The first name cannot be empty. Please enter the agent's first name"<<endl;
-                        cin >> firstName;
-                        validate = stringInput(firstName);
-                    }
-                    while (validate == 1)
-                    {
-                        cout<<"The first name cannot contain digits. Please enter the agent's first name"<<endl;
-                        cin >> firstName;
-                        validate = stringInput(firstName);
-                    }  
+                    string firstName = enterFirstName();
                     a.setFirstName(firstName);
 
                     //Same here but for last name
-                    string lastName;
-                    cout << "Enter agent's last name: " << endl;
-                    cin >> lastName;
-                    validate = stringInput(lastName);
-
-                    while(validate == -1){
-                        cout<<"The last name cannot be empty. Please enter the agent's last name"<<endl;
-                        cin >> lastName;
-                        validate = stringInput(lastName);
-                    }
-                    while (validate == 1)
-                    {
-                        cout<<"The last name cannot contain digits. Please enter the agent's last name"<<endl;
-                        cin >> lastName;
-                        validate = stringInput(lastName);
-                    }  
+                    string lastName = enterLastName();
                     a.setLastName(lastName);
 
-                    //This works just fine, bas do you want to override the >> operator w make it a proper format?
                     string phone = getValidInputString(
                         "Enter phone (8 digits): ",
                         validPhone8,
@@ -224,7 +339,6 @@ int main() {
                     );
                     a.setPhone(phone);
 
-                    //I will change it to validate the email
                     string email = getValidInputString(
                         "Enter email: ",
                         validEmail,
@@ -232,22 +346,16 @@ int main() {
                     );
                     a.setEmail(email);
 
-                    //ill make the start date begin from 1980 - 2028 (At max 3 year contracts)
-                    string startDate = getValidInputString(
-                        "Enter start date (YYYY-MM-DD): ",
-                        validDate,
-                        "Invalid date format, should be YYYY-MM-DD."
-                    );
-                    a.setStartDate(startDate);
+                    string startDate = enterStartDate();
+                    string endDate = enterEndDate();
 
-                    // For end date, allow "empty" to clear the field.
-                    string endDate = getValidInputString(
-                        "Enter end date (YYYY-MM-DD or 'empty'): ",
-                        validDateOrEmptyKeyword,
-                        "Invalid date format, should be YYYY-MM-DD or 'empty'."
-                    );
-                    if (endDate == "empty")
-                        endDate.clear();
+                    while (!compareDates(startDate,endDate)){
+                        cout<<"Please make sure that the start date is before the end date"<<endl;
+                        startDate = enterStartDate();
+                        endDate = enterEndDate();
+                    }
+
+                    a.setStartDate(startDate);
                     a.setEndDate(endDate);
 
                     try {
@@ -281,45 +389,44 @@ int main() {
                         //NOTE TO @TaniaZeidan: do you think rita will allow the usage of system functions? Barke she wants input streams as in reading from a file?
                         Agent existing = system.searchAgentById(id);
                         cout << "Current: " << existing << "\n";
-                        
 
-                        //For the block below, It is the same modifications as the one for the "Add Agent"
-                        string firstName = getValidInputString("New first name: ",
-                            [](const string &s) { return !s.empty(); },
-                            "First name cannot be empty.");
+                        string firstName = enterFirstName();
                         existing.setFirstName(firstName);
 
-                        string lastName = getValidInputString("New last name: ",
-                            [](const string &s) { return !s.empty(); },
-                            "Last name cannot be empty.");
+                        //Same here but for last name
+                        string lastName = enterLastName();
                         existing.setLastName(lastName);
 
-                        string phone = getValidInputString("New phone (8 digits): ",
+                        string phone = getValidInputString(
+                            "Enter phone (8 digits): ",
                             validPhone8,
-                            "Phone must be exactly 8 numeric digits.");
+                            "Phone must be exactly 8 numeric digits."
+                        );
                         existing.setPhone(phone);
 
-                        string email = getValidInputString("New email: ",
+                        string email = getValidInputString(
+                            "Enter email: ",
                             validEmail,
-                            "Invalid email format, must contain '@'.");
+                            "Invalid email format, must contain '@'."
+                        );
                         existing.setEmail(email);
 
-                        string startDate = getValidInputString("New start date (YYYY-MM-DD): ",
-                            validDate,
-                            "Invalid date format, should be YYYY-MM-DD.");
+                        string startDate = enterStartDate();
+                        string endDate = enterEndDate();
+    
+                        while (!compareDates(startDate,endDate)){
+                            cout<<"Please make sure that the start date is before the end date"<<endl;
+                            startDate = enterStartDate();
+                            endDate = enterEndDate();
+                        }
+
                         existing.setStartDate(startDate);
-
-                        string endDate = getValidInputString("New end date (YYYY-MM-DD or 'empty'): ",
-                            validDateOrEmptyKeyword,
-                            "Invalid date format, should be YYYY-MM-DD or 'empty'.");
-
-                        if (endDate == "empty")
-                            endDate.clear();
                         existing.setEndDate(endDate);
-                        if (system.modifyAgent(existing))
-                            cout << "Agent modified successfully.\n";
-                        else
-                            cout << "Modification failed.\n";
+
+                    if (system.modifyAgent(existing))
+                        cout << "Agent modified successfully.\n";
+                    else
+                        cout << "Modification failed.\n";
                     }
                     catch (const exception &e) {
                         cerr << e.what() << "\n";
@@ -362,14 +469,10 @@ int main() {
                     Client c;
 
                     //Same as the Agent
-                    string firstName = getValidInputString("Enter first name: ",
-                        [](const string &s){ return !s.empty(); },
-                        "First name cannot be empty.");
+                    string firstName = enterFirstName();
                     c.setFirstName(firstName);
 
-                    string lastName = getValidInputString("Enter last name: ",
-                        [](const string &s){ return !s.empty(); },
-                        "Last name cannot be empty.");
+                    string lastName = enterLastName();
                     c.setLastName(lastName);
 
                     string phone = getValidInputString("Enter phone (8 digits): ",
@@ -382,6 +485,7 @@ int main() {
                         "Invalid email format, must contain '@'.");
                     c.setEmail(email);
 
+                    //This is different from agent
                     bool married = getValidInputBool("Is married? (1 for yes, 0 for no): ");
                     c.setIsMarried(married);
                     double budget = getValidInputNumber<double>("Enter budget: ");
@@ -423,14 +527,11 @@ int main() {
                         Client existing = system.searchClientById(id);
 
                         cout << "Current: " << existing << "\n";
-                        string firstName = getValidInputString("New first name: ",
-                            [](const string &s){ return !s.empty(); },
-                            "First name cannot be empty.");
+
+                        string firstName = enterFirstName();
                         existing.setFirstName(firstName);
 
-                        string lastName = getValidInputString("New last name: ",
-                            [](const string &s){ return !s.empty(); },
-                            "Last name cannot be empty.");
+                        string lastName = enterLastName();
                         existing.setLastName(lastName);
 
                         string phone = getValidInputString("New phone (8 digits): ",
@@ -644,21 +745,33 @@ int main() {
                 if (choice == 1) {
                     //Validate logical functionalities here
                     Contract ct;
+
+                    //Id checking is correct, I did not edit it
                     int propId = getValidInputNumber<int>("Enter property ID: ");
                     ct.setPropertyId(propId);
                     int clientId = getValidInputNumber<int>("Enter client ID: ");
                     ct.setClientId(clientId);
                     int agentId = getValidInputNumber<int>("Enter agent ID: ");
                     ct.setAgentId(agentId);
+
+                    //Price check is working
                     double price = getValidInputNumber<double>("Enter price: ");
                     ct.setPrice(price);
-                    string sd = getValidInputString("Enter start date (YYYY-MM-DD): ",
-                                                    validDate, "Invalid date format, should be YYYY-MM-DD.");
-                    ct.setStartDate(sd);
-                    string ed = getValidInputString("Enter end date (YYYY-MM-DD or 'empty'): ",
-                                                    validDateOrEmptyKeyword, "Invalid date format, should be YYYY-MM-DD or 'empty'.");
+
+
+                    string sd = enterStartDate();
+                    string ed = enterEndDate();
+
+                    while (!compareDates(sd,ed)){
+                        cout<<"Please make sure that the start date is before the end date"<<endl;
+                        sd = enterStartDate();
+                        ed = enterEndDate();
+                    }
+
                     if (ed == "empty")
                         ed.clear();
+                    
+                    ct.setStartDate(sd);
                     ct.setEndDate(ed);
                     string cType = getValidInputString("Enter contract type ('sale' or 'rent'): ",
                                                        [](const string &s){ return s=="sale" || s=="rent"; },
@@ -697,28 +810,41 @@ int main() {
                     try {
                         Contract existing = system.searchContractById(id);
                         cout << "Current: " << existing << "\n";
+
+                        //I will not edit anything here
                         int propId = getValidInputNumber<int>("New property ID: ");
                         existing.setPropertyId(propId);
                         int clientId = getValidInputNumber<int>("New client ID: ");
                         existing.setClientId(clientId);
                         int agentId = getValidInputNumber<int>("New agent ID: ");
                         existing.setAgentId(agentId);
+
+                        //Here as well
                         double price = getValidInputNumber<double>("New price: ");
                         existing.setPrice(price);
-                        string sd = getValidInputString("New start date (YYYY-MM-DD): ",
-                                                       validDate, "Invalid date format, should be YYYY-MM-DD.");
+
+                        string sd = enterStartDate();
+                        string ed = enterEndDate();
+    
+                        while (!compareDates(sd,ed)){
+                            cout<<"Please make sure that the start date is before the end date"<<endl;
+                            sd = enterStartDate();
+                            ed = enterEndDate();
+                        }
+                        
                         existing.setStartDate(sd);
-                        string ed = getValidInputString("New end date (YYYY-MM-DD or 'empty'): ",
-                                                       validDateOrEmptyKeyword, "Invalid date format, should be YYYY-MM-DD or 'empty'.");
                         if (ed == "empty")
                             ed.clear();
                         existing.setEndDate(ed);
+
                         string cType = getValidInputString("New contract type ('sale' or 'rent'): ",
                                                            [](const string &s){ return s=="sale" || s=="rent"; },
                                                            "Contract type must be 'sale' or 'rent'.");
                         existing.setContractType(cType);
+
                         int activeInt = getValidInputNumber<int>("Is the contract active? (1 for yes, 0 for no): ");
                         existing.setIsActive(activeInt != 0);
+
                         if (system.modifyContract(existing))
                             cout << "Contract modified successfully.\n";
                         else
@@ -746,10 +872,8 @@ int main() {
             int clientId = getValidInputNumber<int>("Enter client ID: ");
             int agentId = getValidInputNumber<int>("Enter agent ID: ");
             double price = getValidInputNumber<double>("Enter price: ");
-            string sd = getValidInputString("Enter start date (YYYY-MM-DD): ",
-                                            validDate, "Invalid date format, should be YYYY-MM-DD.");
-            string ed = getValidInputString("Enter end date (YYYY-MM-DD or 'empty'): ",
-                                            validDateOrEmptyKeyword, "Invalid date format, should be YYYY-MM-DD or 'empty'.");
+            string sd = enterStartDate();
+            string ed = enterEndDate();
             if (ed == "empty")
                 ed.clear();
             string cType = getValidInputString("Enter contract type ('sale' or 'rent'): ",
