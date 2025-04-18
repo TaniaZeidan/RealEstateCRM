@@ -230,8 +230,8 @@ void CRMSystem::displayContracts() const {
 
 // Create contract from existing records
 void CRMSystem::createContract(int /*ignored*/, int propertyId, int clientId, int agentId,
-                               double price, const std::string &startDate,
-                               const std::string &endDate, const std::string &contractType, bool isActive)
+                               double price, const std::string &startDateStr,
+                               const std::string &endDateStr, const std::string &contractType, bool isActive)
 {
     // Validate references first
     try {
@@ -252,7 +252,19 @@ void CRMSystem::createContract(int /*ignored*/, int propertyId, int clientId, in
         throw ValidationException("Property not found: " + std::to_string(propertyId));
     }
 
-    Contract contract(-1, propertyId, clientId, agentId, price, startDate, endDate, contractType, isActive);
+    Date startDate;
+    Date endDate = Date::emptyDate();
+    
+    try {
+        startDate = Date(startDateStr);
+        if (!endDateStr.empty()) {
+            endDate = Date(endDateStr);
+        }
+    } catch (const InvalidDateException& e) {
+        throw ValidationException("Invalid date format: " + std::string(e.what()));
+    }
+
+    Contract contract(-1, propertyId, clientId, agentId, price, startDateStr, endDateStr, contractType, isActive);
     if (!contract.isValid()) {
         throw ValidationException("Invalid contract data");
     }
@@ -443,8 +455,8 @@ void CRMSystem::saveContracts() {
             << c.getClientId() << ","
             << c.getAgentId() << ","
             << c.getPrice() << ","
-            << c.getStartDate() << ","
-            << c.getEndDate() << ","
+            << c.getStartDateString() << ","  
+            << c.getEndDateString() << "," 
             << c.getContractType() << ","
             << (c.getIsActive() ? 1 : 0) << "\n";
     }

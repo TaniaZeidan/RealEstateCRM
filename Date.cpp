@@ -27,16 +27,29 @@ Date::Date(const std::string& dateStr) : m_isEmpty(false) {
         return;
     }
     
-    // Parse "YYYY-MM-DD" format
-    std::stringstream ss(dateStr);
-    char delimiter;
-    ss >> m_year >> delimiter >> m_month >> delimiter >> m_day;
-    
-    if (ss.fail()) {
+   try {
+        if (dateStr.find('-') != std::string::npos) {
+            // Parse "YYYY-MM-DD" format with hyphens
+            std::stringstream ss(dateStr);
+            char delimiter;
+            ss >> m_year >> delimiter >> m_month >> delimiter >> m_day;
+            
+            if (ss.fail()) {
+                throw std::invalid_argument("Invalid date format");
+            }
+        } else if (dateStr.length() == 8) {
+            // Parse as YYYYMMDD
+            m_year = std::stoi(dateStr.substr(0, 4));
+            m_month = std::stoi(dateStr.substr(4, 2));
+            m_day = std::stoi(dateStr.substr(6, 2));
+        } else {
+            throw std::invalid_argument("Invalid date format");
+        }
+        
+        validate();
+    } catch (const std::exception&) {
         throw InvalidDateException(dateStr);
     }
-    
-    validate();
 }
 
 std::string Date::toString() const {
