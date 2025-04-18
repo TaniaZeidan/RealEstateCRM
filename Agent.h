@@ -4,6 +4,7 @@
 #include <iostream>
 #include <string>
 #include "Exceptions.h"
+#include "Date.h"
 
 class Agent {
 public:
@@ -18,8 +19,8 @@ public:
     std::string getLastName() const;
     std::string getPhone() const;
     std::string getEmail() const;
-    std::string getStartDate() const;
-    std::string getEndDate() const;
+    Date getStartDate() const;
+    Date getEndDate() const;
 
     // Setters
     void setId(int id);
@@ -27,8 +28,14 @@ public:
     void setLastName(const std::string &lastName);
     void setPhone(const std::string &phone);
     void setEmail(const std::string &email);
-    void setStartDate(const std::string &startDate);
-    void setEndDate(const std::string &endDate);
+    void setStartDate(const Date &startDate);
+    void setEndDate(const Date &endDate);
+
+    // For backward compatibility (used in file operations)
+    std::string getStartDateString() const;
+    std::string getEndDateString() const;
+    void setStartDateFromString(const std::string& startDate);
+    void setEndDateFromString(const std::string& endDate);
 
     // Basic validation
     bool isValid() const;
@@ -43,8 +50,8 @@ private:
     std::string m_lastName;
     std::string m_phone;
     std::string m_email;
-    std::string m_startDate; // e.g., "YYYY-MM-DD"
-    std::string m_endDate;   // e.g., "YYYY-MM-DD" or empty
+    Date m_startDate; // e.g., "YYYY-MM-DD"
+    Date m_endDate;   // e.g., "YYYY-MM-DD" or empty
 };
 
 #endif // AGENT_H

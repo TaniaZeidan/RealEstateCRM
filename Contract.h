@@ -4,6 +4,7 @@
 #include <iostream>
 #include <string>
 #include "Exceptions.h"
+#include "Date.h"
 
 class Contract {
 public:
@@ -18,8 +19,8 @@ public:
     int getClientId() const;
     int getAgentId() const;
     double getPrice() const;
-    std::string getStartDate() const;
-    std::string getEndDate() const;
+    Date getStartDate() const;
+    Date getEndDate() const;
     std::string getContractType() const;
     bool getIsActive() const;
 
@@ -29,10 +30,16 @@ public:
     void setClientId(int clientId);
     void setAgentId(int agentId);
     void setPrice(double price);
-    void setStartDate(const std::string &startDate);
-    void setEndDate(const std::string &endDate);
+    void setStartDate(const Date &startDate);
+    void setEndDate(const Date &endDate);
     void setContractType(const std::string &contractType); // Must be "sale" or "rent"
     void setIsActive(bool isActive);
+
+    // For backward compatibility (used in file operations)
+    std::string getStartDateString() const;
+    std::string getEndDateString() const;
+    void setStartDateFromString(const std::string& startDate);
+    void setEndDateFromString(const std::string& endDate);
 
     // Validation
     bool isValid() const;
@@ -47,8 +54,8 @@ private:
     int m_clientId;
     int m_agentId;
     double m_price;
-    std::string m_startDate;
-    std::string m_endDate;
+    Date m_startDate;
+    Date m_endDate;
     std::string m_contractType; // "sale" or "rent"
     bool m_isActive;
 };

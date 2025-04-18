@@ -294,8 +294,8 @@ void CRMSystem::loadAgents() {
             a.setLastName(tokens[2]);
             a.setPhone(tokens[3]);
             a.setEmail(tokens[4]);
-            a.setStartDate(tokens[5]);
-            a.setEndDate(tokens[6]);
+            a.setStartDateFromString(tokens[5]);
+            a.setEndDateFromString(tokens[6]);
             agents.push_back(a);
         } catch (const std::exception& e) {
             // Log or handle parsing errors
@@ -317,8 +317,8 @@ void CRMSystem::saveAgents() {
             << a.getLastName() << ","
             << a.getPhone() << ","
             << a.getEmail() << ","
-            << a.getStartDate() << ","
-            << a.getEndDate() << "\n";
+            << a.getStartDateString() << ","
+            << a.getEndDateString() << "\n";
     }
     out.close();
 }
@@ -425,8 +425,8 @@ void CRMSystem::loadContracts() {
         ct.setClientId(std::stoi(tokens[2]));
         ct.setAgentId(std::stoi(tokens[3]));
         ct.setPrice(std::stod(tokens[4]));
-        ct.setStartDate(tokens[5]);
-        ct.setEndDate(tokens[6]);
+        ct.setStartDateFromString(tokens[5]);
+        ct.setEndDateFromString(tokens[6]);
         ct.setContractType(tokens[7]);
         ct.setIsActive(std::stoi(tokens[8]) != 0);
         contracts.push_back(ct);

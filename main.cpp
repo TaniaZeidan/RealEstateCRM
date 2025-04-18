@@ -4,6 +4,7 @@
 #include <limits>
 #include <cctype>  // for isdigit()
 #include <sstream>
+#include <algorithm> // for transform
 #include "CRMSystem.h"
 #include "Agent.h"
 #include "Client.h"
@@ -58,7 +59,7 @@ bool validEmail(const string &email) {
 
 // Basic date check: expecting exactly "YYYY-MM-DD" (10 characters, '-' at positions 4 and 7)
 bool validYear(const int &year) {
-    if(!(year >=1980 && year <= 2028)){
+    if(!(year >=1980 && year <= 2025)){
         return false;
     }
 
@@ -212,7 +213,7 @@ string enterStartDate(){
     cin>>day;
     
     while(!validYear(year)){
-        cout<<"Please enter a year between 1980 and 2028"<<endl;
+        cout<<"Please enter a year between 1980 and 2025"<<endl;
         cin>>year;
     }
 
@@ -240,12 +241,13 @@ string enterStartDate(){
 string enterEndDate(){
     cin.ignore(numeric_limits<streamsize>::max(), '\n');
     // For end date
-    cout<<"Enter end date (YYYY-MM-DD) ( seperate them by spaces ): "<<endl;
+    cout<<"Enter end date (YYYY-MM-DD) ( seperate them by spaces ) or type 'empty' if agent hasn't retired: "<<endl;
     string inputLine;
     getline(cin, inputLine);  // Read full line including potential empty line
 
-    if (inputLine.empty()) {
-        return "";  // User skipped the date
+    // Check if user entered "empty"
+    if (inputLine == "empty") {
+        return "";  // Return empty string for no end date
     }
 
     int year, month, day;
@@ -272,13 +274,14 @@ string enterEndDate(){
     
     string endDate = yearAsString + "-" + monthAsString + "-" + dayAsString;
     
-    // cout << "For testing a proper date format, endDate: " << endDate << endl;
-    
-
     return endDate;
 }
 
 bool compareDates(const string& startDate, const string& endDate){
+    // Empty end date is always valid (agent still active)
+    if (endDate.empty()) {
+        return true;
+    }
 
     //They can be directly compared since they have the same format YYYY-MM-DD
     if (startDate <= endDate){
@@ -286,6 +289,46 @@ bool compareDates(const string& startDate, const string& endDate){
     } else {
         return false;
     }
+}
+
+// For contract end dates
+string enterContractEndDate(){
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    // For end date
+    cout<<"Enter contract end date (YYYY-MM-DD) ( seperate them by spaces ) or type 'empty' for permanent contracts: "<<endl;
+    string inputLine;
+    getline(cin, inputLine);  // Read full line including potential empty line
+
+    // Check if user entered "empty"
+    if (inputLine == "empty") {
+        return "";  // Return empty string for no end date
+    }
+
+    int year, month, day;
+    stringstream ss(inputLine);
+    ss >> year >> month >> day;
+    while(!validYear(year)){
+        cout<<"Please enter a year between 1980 and 2028"<<endl;
+        cin>>year;
+    }
+
+    while(!validMonth(month)){
+        cout<<"Please enter a month between 1 and 12"<<endl;
+        cin>>month;
+    }
+
+    while(!validDay(day, month, year)){
+        cout<<"Please enter a valid day"<<endl;
+        cin>>day;
+    }
+
+    string yearAsString = to_string(year);
+    string monthAsString = (month < 10 ? "0" : "") + to_string(month);
+    string dayAsString = (day < 10 ? "0" : "") + to_string(day);
+    
+    string endDate = yearAsString + "-" + monthAsString + "-" + dayAsString;
+    
+    return endDate;
 }
 
 //------------------------------
@@ -358,14 +401,14 @@ int main() {
                     string startDate = enterStartDate();
                     string endDate = enterEndDate();
 
-                    while (!compareDates(startDate,endDate) && endDate != ""){
+                    while (!compareDates(startDate,endDate) && !endDate.empty()){
                         cout<<"Please make sure that the start date is before the end date"<<endl;
                         startDate = enterStartDate();
                         endDate = enterEndDate();
                     }
 
-                    a.setStartDate(startDate);
-                    a.setEndDate(endDate);
+                    a.setStartDateFromString(startDate);
+                    a.setEndDateFromString(endDate);
 
                     try {
                         system.addAgent(a);
@@ -435,14 +478,14 @@ int main() {
                         string startDate = enterStartDate();
                         string endDate = enterEndDate();
     
-                        while (!compareDates(startDate,endDate)  && endDate != ""){
+                        while (!compareDates(startDate,endDate)  && !endDate.empty()){
                             cout<<"Please make sure that the start date is before the end date"<<endl;
                             startDate = enterStartDate();
                             endDate = enterEndDate();
                         }
 
-                        existing.setStartDate(startDate);
-                        existing.setEndDate(endDate);
+                        existing.setStartDateFromString(startDate);
+                        existing.setEndDateFromString(endDate);
 
                     if (system.modifyAgent(existing))
                         cout << "Agent modified successfully.\n";
@@ -901,24 +944,24 @@ int main() {
                     ct.setContractType(cType);
 
                     if(cType == "sale"){
+                        // For sale contracts, automatically set start date and empty end date
                         string sd = enterStartDate();
-                        ct.setStartDate(sd);
-
-                        string ed = "";
-                        ct.setEndDate(ed);
-                        ct.setIsActive(true);
-                    }else{
+                        ct.setStartDateFromString(sd);
+                        ct.setEndDateFromString(""); // Empty end date for sale contracts
+                        ct.setIsActive(true);        // Sale contracts are always active
+                    } else {
+                        // For rent contracts, ask for both start and end date
                         string sd = enterStartDate();
-                        string ed = enterEndDate();
+                        string ed = enterContractEndDate();
 
-                        while (!compareDates(sd,ed)){
+                        while (!compareDates(sd,ed) && !ed.empty()){
                             cout<<"Please make sure that the start date is before the end date"<<endl;
                             sd = enterStartDate();
-                            ed = enterEndDate();
+                            ed = enterContractEndDate();
                         }
 
-                        ct.setStartDate(sd);
-                        ct.setEndDate(ed);
+                        ct.setStartDateFromString(sd);
+                        ct.setEndDateFromString(ed);
 
                         int activeInt = getValidInputNumber<int>("Is the contract active? (1 for yes, 0 for no): ");
                         ct.setIsActive(activeInt != 0);
@@ -987,24 +1030,24 @@ int main() {
                         existing.setContractType(cType);
 
                         if(cType == "sale"){
+                            // For sale contracts, automatically set start date and empty end date
                             string sd = enterStartDate();
-                            existing.setStartDate(sd);
-
-                            string ed = "";
-                            existing.setEndDate(ed);
-                            existing.setIsActive(true);
-                        }else{
+                            existing.setStartDateFromString(sd);
+                            existing.setEndDateFromString(""); // Empty end date for sale contracts
+                            existing.setIsActive(true);        // Sale contracts are always active
+                        } else {
+                            // For rent contracts, ask for both start and end date
                             string sd = enterStartDate();
-                            string ed = enterEndDate();
+                            string ed = enterContractEndDate();
 
-                            while (!compareDates(sd,ed)){
+                            while (!compareDates(sd,ed) && !ed.empty()){
                                 cout<<"Please make sure that the start date is before the end date"<<endl;
                                 sd = enterStartDate();
-                                ed = enterEndDate();
+                                ed = enterContractEndDate();
                             }
 
-                            existing.setStartDate(sd);
-                            existing.setEndDate(ed);
+                            existing.setStartDateFromString(sd);
+                            existing.setEndDateFromString(ed);
 
                             int activeInt = getValidInputNumber<int>("Is the contract active? (1 for yes, 0 for no): ");
                             existing.setIsActive(activeInt != 0);
@@ -1044,14 +1087,38 @@ int main() {
             int clientId = getValidInputNumber<int>("Enter client ID: ");
             int agentId = getValidInputNumber<int>("Enter agent ID: ");
             double price = getValidInputNumber<double>("Enter price: ");
-            string sd = enterStartDate();
-            string ed = enterEndDate();
-            if (ed == "empty")
-                ed.clear();
+            
             string cType = getValidInputString("Enter contract type ('sale' or 'rent'): ",
-                                               [](const string &s){ return s=="sale" || s=="rent"; },
-                                               "Contract type must be 'sale' or 'rent'.");
-            int activeInt = getValidInputNumber<int>("Is the contract active? (1 for yes, 0 for no): ");
+                                           [](const string &s){ return s=="sale" || s=="rent"; },
+                                           "Contract type must be 'sale' or 'rent'.");
+            
+            string sd = enterStartDate();
+            string ed = "";
+            
+            if (cType == "rent") {
+                // Only ask for end date for rent contracts
+                ed = enterContractEndDate();
+                if (ed == "empty") {
+                    ed = "";
+                }
+                
+                while (!compareDates(sd, ed) && !ed.empty()) {
+                    cout << "Please make sure that the start date is before the end date" << endl;
+                    sd = enterStartDate();
+                    ed = enterContractEndDate();
+                    if (ed == "empty") {
+                        ed = "";
+                    }
+                }
+            }
+            // For sale contracts, ed remains empty
+            
+            int activeInt = 1;  // Default to active
+            if (cType == "rent") {
+                // Only ask for active status for rent contracts
+                activeInt = getValidInputNumber<int>("Is the contract active? (1 for yes, 0 for no): ");
+            }
+            
             try {
                 system.createContract(-1, propId, clientId, agentId, price, sd, ed, cType, activeInt != 0);
                 cout << "Contract created successfully.\n";

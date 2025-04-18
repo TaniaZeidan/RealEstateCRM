@@ -20,8 +20,8 @@ int Contract::getPropertyId() const { return m_propertyId; }
 int Contract::getClientId() const { return m_clientId; }
 int Contract::getAgentId() const { return m_agentId; }
 double Contract::getPrice() const { return m_price; }
-std::string Contract::getStartDate() const { return m_startDate; }
-std::string Contract::getEndDate() const { return m_endDate; }
+Date Contract::getStartDate() const { return m_startDate; }
+Date Contract::getEndDate() const { return m_endDate; }
 std::string Contract::getContractType() const { return m_contractType; }
 bool Contract::getIsActive() const { return m_isActive; }
 
@@ -30,8 +30,37 @@ void Contract::setPropertyId(int propertyId) { m_propertyId = propertyId; }
 void Contract::setClientId(int clientId) { m_clientId = clientId; }
 void Contract::setAgentId(int agentId) { m_agentId = agentId; }
 void Contract::setPrice(double price) { m_price = price; }
-void Contract::setStartDate(const std::string &startDate) { m_startDate = startDate; }
-void Contract::setEndDate(const std::string &endDate) { m_endDate = endDate; }
+void Contract::setStartDate(const Date &startDate) { m_startDate = startDate; }
+void Contract::setEndDate(const Date &endDate) { m_endDate = endDate; }
+
+std::string Contract::getStartDateString() const { return m_startDate.toString(); }
+std::string Contract::getEndDateString() const { return m_endDate.toString(); }
+
+void Contract::setStartDateFromString(const std::string& startDate) {
+    try {
+        m_startDate = Date(startDate);
+    } catch (const InvalidDateException& e) {
+        throw ValidationException("Invalid start date: " + startDate);
+    }
+}
+
+void Contract::setEndDateFromString(const std::string& endDate) {
+    if (endDate.empty()) {
+        m_endDate = Date::emptyDate();
+    } else {
+        try {
+            m_endDate = Date(endDate);
+            
+            // Validate that end date is after start date for rental contracts
+            if (m_contractType == "rent" && !m_startDate.isEmpty() && m_endDate < m_startDate) {
+                throw InvalidDateRangeException(m_startDate.toString(), m_endDate.toString());
+            }
+        } catch (const InvalidDateException& e) {
+            throw ValidationException("Invalid end date: " + endDate);
+        }
+    }
+}
+
 void Contract::setContractType(const std::string &contractType) {
     if(contractType != "sale" && contractType != "rent")
         throw ValidationException("Contract type must be 'sale' or 'rent'.");
@@ -44,9 +73,9 @@ bool Contract::isValid() const {
         return false;
     if(m_price < 0) 
         return false;
-    if(m_startDate.empty()) 
+    if(m_startDate.isEmpty())
         return false;
-    if(!m_endDate.empty() && m_startDate > m_endDate) 
+    if(!m_endDate.isEmpty() && m_startDate > m_endDate) 
         return false;
     if(m_contractType != "sale" && m_contractType != "rent") 
         return false;
