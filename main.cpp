@@ -12,6 +12,8 @@
 #include "Contract.h"
 #include "Exceptions.h"
 #include "Date.h"
+#include "DatabaseManager.h"
+
 
 using namespace std;
 
@@ -295,6 +297,13 @@ string enterContractEndDate(){
 //------------------------------
 int main() {
     CRMSystem system;
+    DatabaseManager db("real_estate.db"); //DatabaseManager db("realestate.db");
+    // Initialize the database and create tables if they don't exist
+        // Step 3: Create tables at startup
+        db.execute("CREATE TABLE IF NOT EXISTS Agents (ID INTEGER PRIMARY KEY AUTOINCREMENT, FirstName TEXT, LastName TEXT, Phone TEXT, Email TEXT, StartDate TEXT, EndDate TEXT);");
+        db.execute("CREATE TABLE IF NOT EXISTS Clients (ID INTEGER PRIMARY KEY AUTOINCREMENT, FirstName TEXT, LastName TEXT, Phone TEXT, Email TEXT, IsMarried INTEGER, Budget REAL, BudgetType TEXT);");
+        db.execute("CREATE TABLE IF NOT EXISTS Properties (ID INTEGER PRIMARY KEY AUTOINCREMENT, SizeSqm REAL, Price REAL, Type TEXT, Bedrooms INTEGER, Bathrooms INTEGER, Place TEXT, Available INTEGER, ListingType TEXT);");
+        db.execute("CREATE TABLE IF NOT EXISTS Contracts (ID INTEGER PRIMARY KEY AUTOINCREMENT, PropertyId INTEGER, ClientId INTEGER, AgentId INTEGER, Price REAL, StartDate TEXT, EndDate TEXT, ContractType TEXT, IsActive INTEGER);");
     int mainChoice = 0;
 
     while (true) {
@@ -371,6 +380,15 @@ int main() {
 
                     try {
                         system.addAgent(a);
+                        //system.addAgent(a) into the database;
+                        // Inside Add Agent (mainChoice == 1 and choice == 1)
+                        std::stringstream query;
+                        query << "INSERT INTO Agents (FirstName, LastName, Phone, Email, StartDate, EndDate) VALUES ('"
+                            << firstName << "', '" << lastName << "', '" << phone << "', '" << email << "', '"
+                            << startDate.toString() << "', '" << endDate.toString() << "');";
+                        db.execute(query.str()); 
+                        
+                        
                         cout << "Agent added successfully.\n";
                     }
                       catch (const ValidationException& e) {
@@ -385,9 +403,12 @@ int main() {
                 }
                 else if (choice == 2) {
                     int id = getValidInputNumber<int>("Enter agent ID to remove: ");
-                    if (system.removeAgent(id))
+                    if (system.removeAgent(id)){
+                        stringstream deleteQuery;
+                        deleteQuery << "DELETE FROM Agents WHERE ID = " << id << ";";
+                        db.execute(deleteQuery.str());
                         cout << "Agent removed successfully.\n";
-                    else
+                    }else
                         cout << "Agent not found.\n";
                 }
                 else if (choice == 3) {
@@ -446,9 +467,20 @@ int main() {
                         existing.setStartDate(startDate);
                         existing.setEndDate(endDate);
 
-                    if (system.modifyAgent(existing))
+                    if (system.modifyAgent(existing)){
                         cout << "Agent modified successfully.\n";
-                    else
+                        //system.modifyAgent(existing) into the database;
+                        stringstream updateQuery;
+                        updateQuery << "UPDATE Agents SET "
+                                    << "FirstName = '" << existing.getFirstName() << "', "
+                                    << "LastName = '" << existing.getLastName() << "', "
+                                    << "Phone = '" << existing.getPhone() << "', "
+                                    << "Email = '" << existing.getEmail() << "', "
+                                    << "StartDate = '" << existing.getStartDate().toString() << "', "
+                                    << "EndDate = '" << existing.getEndDate().toString() << "' "
+                                    << "WHERE ID = " << id << ";";
+                        db.execute(updateQuery.str());
+                    }else
                         cout << "Modification failed.\n";
                     }
                     catch (const AgentNotFoundException& e) {
@@ -531,6 +563,15 @@ int main() {
                     c.setBudgetType(budgetType);
                     try {
                         system.addClient(c);
+                        //system.addClient(c) into the database;
+                        // Inside Add Client (mainChoice == 2 and choice == 1)
+                        std::stringstream cquery;
+                        cquery << "INSERT INTO Clients (FirstName, LastName, Phone, Email, IsMarried, Budget, BudgetType) VALUES ('"
+                            << firstName << "', '" << lastName << "', '" << phone << "', '" << email << "', "
+                            << married << ", " << budget << ", '" << budgetType << "');";
+                        db.execute(cquery.str());
+
+
                         cout << "Client added successfully.\n";
                     }
                     catch (const ValidationException& e) {
@@ -545,9 +586,12 @@ int main() {
                 }
                 else if (choice == 2) {
                     int id = getValidInputNumber<int>("Enter client ID to remove: ");
-                    if (system.removeClient(id))
+                    if (system.removeClient(id)){
+                        std::stringstream query;
+                        query << "DELETE FROM Clients WHERE ID = " << id << ";";
+                        db.execute(query.str());
                         cout << "Client removed successfully.\n";
-                    else
+                    }else
                         cout << "Client not found.\n";
                 }
                 else if (choice == 3) {
@@ -605,9 +649,22 @@ int main() {
                             "Budget type must be 'rent' or 'buy'.");
                         existing.setBudgetType(budgetType);
                         
-                        if (system.modifyClient(existing))
+                        if (system.modifyClient(existing)){
+                            //system.modifyClient(existing) into the database;
+                            std::stringstream updateQuery;
+                            updateQuery << "UPDATE Clients SET "
+                                        << "FirstName = '" << existing.getFirstName()
+                                        << "', LastName = '" << existing.getLastName()
+                                        << "', Phone = '" << existing.getPhone()
+                                        << "', Email = '" << existing.getEmail()
+                                        << "', IsMarried = " << existing.getIsMarried()
+                                        << ", Budget = " << existing.getBudget()
+                                        << ", BudgetType = '" << existing.getBudgetType()
+                                        << "' WHERE ID = " << id << ";";
+                        
+                            db.execute(updateQuery.str());
                             cout << "Client modified successfully.\n";
-                        else
+                        }else
                             cout << "Modification failed.\n";
                     }
                     catch (const ClientNotFoundException& e) {
@@ -727,6 +784,13 @@ int main() {
                     
                     try {
                         system.addProperty(p);
+                        //system.addProperty(p) into the database;
+                        // Inside Add Property (mainChoice == 3 and choice == 1)
+                        std::stringstream pquery;
+                        pquery << "INSERT INTO Properties (SizeSqm, Price, Type, Bedrooms, Bathrooms, Place, Available, ListingType) VALUES ("
+                               << size << ", " << price << ", '" << type << "', " << p.getBedrooms() << ", " << p.getBathrooms() << ", '"
+                               << place << "', " << availInt << ", '" << listing << "');";
+                        db.execute(pquery.str());
                         cout << "Property added successfully.\n";
                     }
                     catch (const ValidationException& e) {
@@ -741,9 +805,12 @@ int main() {
                 }
                 else if (choice == 2) {
                     int id = getValidInputNumber<int>("Enter property ID to remove: ");
-                    if (system.removeProperty(id))
+                    if (system.removeProperty(id)){
+                        std::stringstream query;
+                        query << "DELETE FROM Properties WHERE ID = " << id << ";";
+                        db.execute(query.str());
                         cout << "Property removed successfully.\n";
-                    else
+                    }else
                         cout << "Property not found.\n";
                 }
                 else if (choice == 3) {
@@ -836,9 +903,23 @@ int main() {
 
                         existing.setListingType(listing);
                         
-                            if (system.modifyProperty(existing))
+                            if (system.modifyProperty(existing)){
+                                //system.modifyProperty(existing) into the database;
+                                std::stringstream updateQuery;
+                                updateQuery << "UPDATE Properties SET "
+                                            << "SizeSqm = " << existing.getSizeSqm()
+                                            << ", Price = " << existing.getPrice()
+                                            << ", Type = '" << existing.getPropertyType()
+                                            << "', Bedrooms = " << existing.getBedrooms()
+                                            << ", Bathrooms = " << existing.getBathrooms()
+                                            << ", Place = '" << existing.getPlace()
+                                            << "', Available = " << (existing.getAvailability() ? 1 : 0)
+                                            << ", ListingType = '" << existing.getListingType()
+                                            << "' WHERE ID = " << id << ";";
+
+                                db.execute(updateQuery.str());
                                 cout << "Property modified successfully.\n";
-                            else
+                            }else
                                 cout << "Modification failed.\n";
                         }
                     catch (const PropertyNotFoundException& e) {
@@ -928,6 +1009,14 @@ int main() {
 
                     try {
                         system.addContract(ct);
+                        //system.addContract(ct) into the database;
+                        // Inside Add Contract (mainChoice == 4 and choice == 1)
+                        std::stringstream contractQuery;
+                        contractQuery << "INSERT INTO Contracts (PropertyId, ClientId, AgentId, Price, StartDate, EndDate, ContractType, IsActive) VALUES ("
+                                      << propId << ", " << clientId << ", " << agentId << ", " << price << ", '"
+                                      << ct.getStartDate().toString() << "', '" << ct.getEndDate().toString() << "', '"
+                                      << cType << "', " << ct.getIsActive() << ");";
+                        db.execute(contractQuery.str());
                         cout << "Contract added successfully.\n";
                     }
                     catch (const ValidationException& e) {
@@ -942,9 +1031,12 @@ int main() {
                 }
                 else if (choice == 2) {
                     int id = getValidInputNumber<int>("Enter contract ID to remove: ");
-                    if (system.removeContract(id))
+                    if (system.removeContract(id)){
+                        std::stringstream deleteQuery;
+                        deleteQuery << "DELETE FROM Contracts WHERE ID = " << id << ";";
+                        db.execute(deleteQuery.str());
                         cout << "Contract removed successfully.\n";
-                    else
+                    }else
                         cout << "Contract not found.\n";
                 }
                 else if (choice == 3) {
@@ -1013,9 +1105,23 @@ int main() {
                         }
 
 
-                        if (system.modifyContract(existing))
+                        if (system.modifyContract(existing)){
+                            //system.modifyContract(existing) into the database;
+                            std::stringstream updateQuery;
+                            updateQuery << "UPDATE Contracts SET "
+                                        << "PropertyId = " << existing.getPropertyId()
+                                        << ", ClientId = " << existing.getClientId()
+                                        << ", AgentId = " << existing.getAgentId()
+                                        << ", Price = " << existing.getPrice()
+                                        << ", StartDate = '" << existing.getStartDate().toString() << "'"
+                                        << ", EndDate = '" << existing.getEndDate().toString() << "'"
+                                        << ", ContractType = '" << existing.getContractType() << "'"
+                                        << ", IsActive = " << (existing.getIsActive() ? 1 : 0)
+                                        << " WHERE ID = " << id << ";";
+                        
+                            db.execute(updateQuery.str());
                             cout << "Contract modified successfully.\n";
-                        else
+                        }else
                             cout << "Modification failed.\n";
                     }
                     catch (const ContractNotFoundException& e) {
